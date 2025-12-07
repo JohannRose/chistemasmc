@@ -1,33 +1,16 @@
 {
     "version": 2,
-    "builds": [
-        {
-            "src": "api/index.py",
-            "use": "@vercel/python"
-        },
-        {
-            "src": "static/**",
-            "use": "@vercel/static"
+    "functions": {
+        "api/index.py": {
+            "maxDuration": 10,
+            "memory": 1024,
+            "runtime": "python3.9"
         }
-    ],
+    },
     "routes": [
-        {
-            "src": "/static/(.*)",
-            "dest": "/static/$1"
-        },
-        {
-            "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-            "dest": "/static/$1"
-        },
         {
             "src": "/(.*)",
             "dest": "api/index.py"
         }
-    ],
-    "functions": {
-        "api/index.py": {
-            "maxDuration": 10,
-            "memory": 1024
-        }
-    }
+    ]
 }
