@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Pagos del Servidor - Minecraft{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center mb-5">
+    <h1 class="display-4 mb-3">
+        <i class="bi bi-coin"></i> SERVIDOR MINECRAFT
+    </h1>
+    <p class="lead">Sistema de Gestión de Pagos y Contribuciones</p>
+</div>
+
+<!-- Players Table - SIMPLIFIED -->
+<div class="card shadow-lg mb-5">
+    <div class="card-header">
+        <h3 class="mb-0">
+            <i class="bi bi-people-fill"></i> JUGADORES REGISTRADOS
+        </h3>
+    </div>
+    <div class="card-body p-0">
+        {% if player_data %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-hash"></i> #</th>
+                        <th><i class="bi bi-person-badge"></i> Jugador</th>
+                        <th><i class="bi bi-controller"></i> Usuario Minecraft</th>
+                        <th class="text-end"><i class="bi bi-cash"></i> Total Pagado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in player_data %}
+                    <tr>
+                        <td><strong>{{ loop.index }}</strong></td>
+                        <td><strong>{{ data.player.name }}</strong></td>
+                        <td><code>{{ data.player.minecraft_username }}</code></td>
+                        <td class="text-end">
+                            <span class="badge bg-success fs-6">S/{{ "%.2f"|format(data.total_paid) }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted"></i>
+            <p class="text-muted mt-3 fs-5">No hay jugadores registrados aún</p>
+            <p class="text-muted">Contacta al administrador para registrarte</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-6">
+        <div class="card shadow-lg h-100">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-arrow-down-circle-fill text-success"></i> PAGOS RECIENTES
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if payments %}
+                <div class="list-group list-group-flush">
+                    {% for payment in payments[:10] %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">{{ payment.player_name }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3"></i> {{ payment.date.strftime('%d/%m/%Y %H:%M') }}
+                                    {% if payment.description %}
+                                    <br><i class="bi bi-chat-left-text"></i> {{ payment.description }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <span class="badge bg-success" style="font-size: 1.1rem; padding: 0.75rem 1.25rem;">
+                                S/{{ "%.2f"|format(payment.amount) }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-3 text-muted"></i>
+                    <p class="text-muted mt-3">No hay pagos registrados</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Expenses -->
+    <div class="col-lg-6">
+        <div class="card shadow-lg h-100">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-arrow-up-circle-fill text-danger"></i> GASTOS DEL SERVIDOR
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if expenses %}
+                <div class="list-group list-group-flush">
+                    {% for expense in expenses[:10] %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">{{ expense.description }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3"></i> {{ expense.date.strftime('%d/%m/%Y %H:%M') }}
+                                </small>
+                            </div>
+                            <span class="badge bg-danger" style="font-size: 1.1rem; padding: 0.75rem 1.25rem;">
+                                S/{{ "%.2f"|format(expense.amount) }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-3 text-muted"></i>
+                    <p class="text-muted mt-3">No hay gastos registrados</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards - MOVED TO BOTTOM -->
+<div class="card shadow-lg mb-4"
+    style="background: linear-gradient(135deg, rgba(44, 62, 80, 0.95), rgba(26, 37, 47, 0.95)); border: 4px solid #0F0820;">
+    <div class="card-body p-4">
+        <h3 class="text-white text-center mb-4 text-minecraft">
+            <i class="bi bi-graph-up-arrow"></i> RESUMEN FINANCIERO
+        </h3>
+        <div class="row g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card card-green">
+                    <div class="stat-icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>S/{{ "%.2f"|format(total_collected) }}</h3>
+                        <p>Total Recaudado</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card card-red">
+                    <div class="stat-icon">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>S/{{ "%.2f"|format(total_expenses) }}</h3>
+                        <p>Total Gastos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card {% if overall_balance >= 0 %}card-blue{% else %}card-orange{% endif %}">
+                    <div class="stat-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>S/{{ "%.2f"|format(overall_balance) }}</h3>
+                        <p>Balance Total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card card-purple">
+                    <div class="stat-icon">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>S/{{ "%.2f"|format(expense_per_player) }}</h3>
+                        <p>Gasto/Jugador</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Info Box -->
+<div class="alert alert-info shadow-lg" role="alert">
+    <h5 class="alert-heading">
+        <i class="bi bi-info-circle-fill"></i> Información
+    </h5>
+    <p class="mb-0">
+        <strong>Balance por Jugador:</strong> Se calcula como el total pagado menos la cuota proporcional de gastos del
+        servidor.
+        Un balance positivo significa que has pagado más de tu parte, un balance negativo significa que debes dinero.
+    </p>
+</div>
+{% endblock %}
+
+

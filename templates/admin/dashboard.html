@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Admin - Minecraft{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="display-5">
+        <i class="bi bi-speedometer2"></i> Panel de Administración
+    </h1>
+    <p class="text-muted">Bienvenido, {{ current_user.username }}</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="stat-card card-green">
+            <div class="stat-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ total_players }}</h3>
+                <p>Jugadores</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card-blue">
+            <div class="stat-icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-content">
+                <h3>S/{{ "%.2f"|format(total_collected) }}</h3>
+                <p>Total Recaudado</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card card-red">
+            <div class="stat-icon">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-content">
+                <h3>S/{{ "%.2f"|format(total_expenses) }}</h3>
+                <p>Total Gastos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card {% if overall_balance >= 0 %}card-purple{% else %}card-orange{% endif %}">
+            <div class="stat-icon">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-content">
+                <h3>S/{{ "%.2f"|format(overall_balance) }}</h3>
+                <p>Balance</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card shadow-lg mb-5">
+    <div class="card-header">
+        <h4 class="mb-0"><i class="bi bi-lightning-fill"></i> Acciones Rápidas</h4>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{{ url_for('add_player') }}" class="btn btn-outline-primary w-100 py-3">
+                    <i class="bi bi-person-plus-fill"></i><br>
+                    Agregar Jugador
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('add_payment') }}" class="btn btn-outline-success w-100 py-3">
+                    <i class="bi bi-cash-coin"></i><br>
+                    Registrar Pago
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('add_expense') }}" class="btn btn-outline-danger w-100 py-3">
+                    <i class="bi bi-receipt"></i><br>
+                    Registrar Gasto
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-info w-100 py-3">
+                    <i class="bi bi-eye-fill"></i><br>
+                    Ver Página Pública
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Management Links -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <i class="bi bi-people-fill display-3 text-primary"></i>
+                <h5 class="mt-3">Gestionar Jugadores</h5>
+                <p class="text-muted">Ver, editar y eliminar jugadores</p>
+                <a href="{{ url_for('admin_players') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-right"></i> Ir a Jugadores
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <i class="bi bi-cash-stack display-3 text-success"></i>
+                <h5 class="mt-3">Gestionar Pagos</h5>
+                <p class="text-muted">Ver y administrar todos los pagos</p>
+                <a href="{{ url_for('admin_payments') }}" class="btn btn-success">
+                    <i class="bi bi-arrow-right"></i> Ir a Pagos
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <i class="bi bi-wallet2 display-3 text-danger"></i>
+                <h5 class="mt-3">Gestionar Gastos</h5>
+                <p class="text-muted">Ver y administrar gastos del servidor</p>
+                <a href="{{ url_for('admin_expenses') }}" class="btn btn-danger">
+                    <i class="bi bi-arrow-right"></i> Ir a Gastos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Pagos Recientes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_payments %}
+                <div class="list-group list-group-flush">
+                    {% for payment in recent_payments %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ payment.player.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ payment.date.strftime('%d/%m/%Y') }}</small>
+                            </div>
+                            <span class="badge bg-success">S/{{ "%.2f"|format(payment.amount) }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay pagos recientes</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Gastos Recientes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_expenses %}
+                <div class="list-group list-group-flush">
+                    {% for expense in recent_expenses %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ expense.description }}</strong>
+                                <br>
+                                <small class="text-muted">{{ expense.date.strftime('%d/%m/%Y') }}</small>
+                            </div>
+                            <span class="badge bg-danger">S/{{ "%.2f"|format(expense.amount) }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay gastos recientes</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
