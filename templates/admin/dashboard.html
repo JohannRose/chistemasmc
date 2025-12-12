@@ -149,11 +149,11 @@
                     <div class="list-group-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>{{ payment.player.name }}</strong>
+                                <strong>{{ payment['player_name'] }}</strong>
                                 <br>
-                                <small class="text-muted">{{ payment.date.strftime('%d/%m/%Y') }}</small>
+                                <small class="text-muted">{{ payment['date'].strftime('%d/%m/%Y') }}</small>
                             </div>
-                            <span class="badge bg-success">S/{{ "%.2f"|format(payment.amount) }}</span>
+                            <span class="badge bg-success">S/{{ "%.2f"|format(payment['amount']) }}</span>
                         </div>
                     </div>
                     {% endfor %}
