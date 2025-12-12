@@ -234,11 +234,28 @@ def admin_expenses():
 @login_required
 def add_expense():
     form = ExpenseForm()
-    if form.validate_on_submit():
-        db.create_expense(form.amount.data, form.date.data, form.description.data)
-        static_cache.force_refresh_index()
-        flash(f'Gasto de S/{form.amount.data} registrado exitosamente!', 'success')
-        return redirect(url_for('admin_expenses'))
+    # Handle form submission with logging and cache invalidation
+    if request.method == 'POST':
+        valid = form.validate_on_submit()
+        app.logger.info('POST /admin/expenses/add validate=%s form_data=%s', valid, dict(request.form))
+        app.logger.info('Form errors: %s', form.errors)
+        if valid:
+            try:
+                new_id = db.create_expense(form.amount.data, form.date.data, form.description.data)
+                # Clear DB-layer cache so subsequent reads reflect the new row
+                try:
+                    db.cache_clear()
+                except Exception:
+                    app.logger.debug('db.cache_clear() failed or not available')
+                static_cache.force_refresh_index()
+                flash(f'Gasto de S/{form.amount.data} registrado exitosamente! (id={new_id})', 'success')
+                return redirect(url_for('admin_expenses'))
+            except Exception as e:
+                app.logger.exception('Error creando gasto: %s', e)
+                flash('Ocurrió un error al guardar el gasto. Revisa los logs.', 'danger')
+        else:
+            # Inform the user there were validation errors
+            flash('El formulario contiene errores. Por favor corrígelos e intenta nuevamente.', 'warning')
     
     return render_template('admin/add_expense.html', form=form)
 

@@ -72,8 +72,34 @@ def execute_one(query, params=None, cache_key=None, cache_seconds=30):
         with conn.cursor() as cursor:
             cursor.execute(query, params or ())
             result = cursor.fetchone()
+            # Determinar si la consulta es de escritura (INSERT/UPDATE/DELETE, etc.)
+            qtype = None
+            try:
+                qtype = str(query).strip().split()[0].upper()
+            except Exception:
+                qtype = None
+
+            # Si la consulta modifica datos (INSERT/UPDATE/DELETE/CREATE/ALTER/TRUNCATE),
+            # confirmamos la transacción y limpiamos la caché global del módulo.
+            if qtype in ('INSERT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'TRUNCATE'):
+                try:
+                    conn.commit()
+                except Exception:
+                    pass
+                try:
+                    cache_clear()
+                except Exception:
+                    # No impedir el retorno por un fallo en limpiar caché
+                    pass
+            else:
+                # Para consultas de solo lectura, no debemos limpiar la caché ni confirmar
+                # transacciones innecesarias. Sin embargo, si hay RETURNING en una SELECT
+                # (caso raro), commit no es necesario.
+                pass
+
             if cache_key:
                 cache_set(cache_key, result, cache_seconds)
+
             return result
     finally:
         conn.close()
